@@ -4,7 +4,11 @@ class Post < ApplicationRecord
   before_save :set_plain_text_body
 
   scope :search, -> (query) {
-    joins(:rich_text_content).merge(ActionText::RichText.where('plain_text_body ILIKE ?', "%#{query}%"))
+    joins(:rich_text_content).merge(
+      ActionText::RichText.where(
+        "to_tsvector('english', plain_text_body) @@ websearch_to_tsquery(?)", query
+      )
+    )
   }
 
   private
